@@ -34,6 +34,7 @@ public class graphics extends ZeroArgFunction {
         library.set("print", new print());
         library.set("line", new line());
         library.set("color", new color());
+        library.set("bgcolor", new bgcolor());
         return library;
 
     }
@@ -53,6 +54,7 @@ public class graphics extends ZeroArgFunction {
         	GameRender.c.drawPoint(x.tofloat(), y.tofloat(), defPaint);
             return LuaValue.NIL;
         }
+        
     }
 
     private static class circle extends FourArgFunction {
@@ -187,6 +189,40 @@ public class graphics extends ZeroArgFunction {
                 return LuaValue.NIL;
             }
         }
+    }
+    
+    private static class bgcolor extends ThreeArgFunction{
+
+		@Override
+		public LuaValue call(LuaValue r, LuaValue g, LuaValue b) {
+			if(g.isnil() || b.isnil()){
+				GameRender.BGCOLOR = translate(r.tojstring());
+				return LuaValue.TRUE;
+			}
+			GameRender.BGCOLOR = Color.rgb(r.toint(), g.toint(), b.toint());
+			return LuaValue.TRUE;
+		}
+		
+		public int translate(String colorName){
+            if (colorName.equals("WHITE")) {
+                return Color.WHITE;
+            } else if (colorName.equals("BLACK")) {
+                return Color.BLACK;
+            } else if (colorName.equals("BLUE")) {
+                return Color.BLUE;
+            } else if (colorName.equals("RED")) {
+                return Color.RED;
+            } else if (colorName.equals("GREEN")) {
+                return Color.GREEN;
+            } else if (colorName.equals("GRAY")) {
+                return Color.GRAY;
+            } else if (colorName.equals("YELLOW")) {
+                return Color.YELLOW;
+            } else {
+                return Color.WHITE;
+            }
+		}
+    	
     }
 
     private static class line extends FiveArgFunction {

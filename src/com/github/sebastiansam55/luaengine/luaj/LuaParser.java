@@ -18,6 +18,7 @@ public class LuaParser {
     private LuaValue func_touchEvent;
 
     public LuaParser(String fileloc) {
+    	//TODO only load input when needed to avoid console spam
 
         globals = JsePlatform.standardGlobals();
         updateGlobalValue("screenX", LuaEngineActivity.screenX);

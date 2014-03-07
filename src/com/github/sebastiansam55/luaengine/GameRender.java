@@ -16,6 +16,8 @@ import android.content.res.AssetManager;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -28,6 +30,7 @@ public class GameRender extends SurfaceView implements SurfaceHolder.Callback {
 	public static Context ctx;
 	GThread renderThread;
 	public static Canvas c;
+	public static int BGCOLOR = Color.WHITE;
 
 	public GameRender(Context context) {
 		super(context);
@@ -75,18 +78,40 @@ public class GameRender extends SurfaceView implements SurfaceHolder.Callback {
 		public LuaParser parser;
 		public GThread(){
 			File jsonfile = new File(ctx.getExternalFilesDir(null)+"/"+jsonfname);
-			String filename;
-			if(jsonfile.exists()){
-				//assuming properly configured
-				JSONFileParser p = new JSONFileParser(jsonfile);
-				filename = p.getThis("filename");
-			}else{
-				//json file does not exsit make one
-				makeFile(jsonfile.getName());
-				JSONFileParser p = new JSONFileParser(jsonfile);
-				filename = p.getThis("filename");
+			String filename = "";
+			AssetManager am = ctx.getAssets();
+			try {
+				String[] files = am.list("");
+				String overwrite = "";
+				for(String fname : files){
+					Log.w("LUAENGINE", fname);
+					if(fname.equals(jsonfname)){
+						JSONFileParser p;
+						if(jsonfile.exists()){
+							p = new JSONFileParser(jsonfile);							
+						}else{
+							makeFile(jsonfname);
+							p = new JSONFileParser(jsonfile);						
+						}
+						overwrite = p.getThis("overwrite");
+						filename = p.getThis("filename");
+					}
+				}
+				for(String fname: files){
+					if(fname.equals("sounds") || fname.equals("webkit") || fname.equals("images") || fname.equals("data.json")){
+						Log.w("LUAENGINE", fname);
+					}else{
+						if(overwrite.equals("overwrite")){
+							makeFile(fname);
+						}
+					}
+				}
+				
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			makeFile(filename);
+			
 			
 			parser = new LuaParser(ctx.getExternalFilesDir(null)+"/"+filename);
 		}
@@ -109,7 +134,7 @@ public class GameRender extends SurfaceView implements SurfaceHolder.Callback {
 					synchronized (sh){
 						if(c!=null){
 							c.restore();
-							c.drawColor(Color.WHITE);
+							c.drawColor(BGCOLOR);
 							parser.getFunc_draw().call();
 						}
 					}
@@ -139,6 +164,7 @@ public class GameRender extends SurfaceView implements SurfaceHolder.Callback {
 		}
 		
 		private void makeFile(String filename){
+			Log.w("LUAENGINE", "Making file: "+filename);
 			String content = "";
 			AssetManager am = ctx.getAssets();
 			try {
@@ -148,7 +174,7 @@ public class GameRender extends SurfaceView implements SurfaceHolder.Callback {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			Log.w("LUAENGINE", content);
+//			Log.w("LUAENGINE", content);
 			File location = new File(ctx.getExternalFilesDir(null)+"/"+filename);
 			try{
 				if(!location.exists()){
